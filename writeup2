@@ -1,0 +1,567 @@
+Writeup2
+
+Nous allons cette fois nous occuper du fichier bomb.
+
+Une fois la connexion ssh faite cette fois nous pouvons apercevoir 2 fichiers. Un README ainsi qu’un fichier bomb.
+
+Le README nous indique qu’il y a des challenges à résoudre pour récupérer le mot de passe de thor qui est admin.
+
+Le voici détaillé :
+
+Diffuse this bomb!
+When you have all the password use it as "thor" user with ssh.
+
+HINT:
+P
+ 2
+ b
+
+o
+4
+
+NO SPACE IN THE PASSWORD (password is case sensitive).
+
+
+Pour mieux comprendre ce qu’il y a a faire nous décidons d’utiliser un logiciel pour convertir le binaire en fichier point c avec le logiciel de décompilation. Nous utiliserons ghidra.
+
+Nous pouvons télécharger le fichier bomb avec la commande scp sur le mac avec la commande suivante: 
+
+scp laurie@192.168.0.116:/home/laurie/bomb /your/local/path
+
+
+PHASE 1 :
+
+Nous allons faire un nm sur le binaire pour comprendre comment il fonctionne et on peux voir qu’il y a 6 fonctions de phases. Il y a donc 6 test à resoudre.
+
+Nous pouvons ensuite utiliser le logiciel pour décortiquer le binaire.
+
+Pour commencer nous allons chercher dans le code la phase 1 et nous trouvons ceci.
+
+void phase_1(undefined4 param_1)
+
+{
+  int iVar1;
+  
+  iVar1 = strings_not_equal(param_1,"Public speaking is very easy.");
+  if (iVar1 != 0) {
+    explode_bomb();
+  }
+  return;
+}
+
+nous pouvons en déduire que la réponse est donc “Public speaking is very easy.”.
+
+PHASE 2 :
+
+Pour l’étape 2 nous avons à traiter le nombre 2, il y a un espace devant nous pouvons en déduire qu’il nous manque un chiffre avant et probablement un ou plusieurs chiffres après.
+Nous allons chercher dans le code la phase 2 :
+
+
+void phase_2(undefined4 param_1)
+
+{
+  int iVar1;
+  int aiStack32 [7];
+  
+  read_six_numbers(param_1,aiStack32 + 1);
+  if (aiStack32[1] != 1) {
+    explode_bomb();
+  }
+  iVar1 = 1;
+  do {
+    if (aiStack32[iVar1 + 1] != (iVar1 + 1) * aiStack32[iVar1]) {
+      explode_bomb();
+    }
+    iVar1 = iVar1 + 1;
+  } while (iVar1 < 6);
+  return;
+}
+
+On cherche ensuite la fonction “read_six_numbers”
+
+void read_six_numbers(char *param_1,int param_2)
+
+{
+  int iVar1;
+  
+  iVar1 = sscanf(param_1,"%d %d %d %d %d %d",param_2,param_2 + 4,param_2 + 8,param_2 + 0xc,
+                 param_2 + 0x10,param_2 + 0x14);
+  if (iVar1 < 6) {
+    explode_bomb();
+  }
+  return;
+}
+
+On peux voir distinctement que nous avons une fonction qui attend 6 nombres.
+
+Il nous faut donc les trouver pour résoudre le problème de la seconde étape sachant que le second nombre est le “2” (on peux aussi apercevoir que les nombres sont espacés ce qu’il ne faudra pas négliger lors de la réponse).
+
+On remarque que le premier if (de la fonction phase_2) demande si le premier nombre est bien le 1 sinon la bombe explose. 
+
+Nous avons donc pour commencer “1 2”.
+
+On remarque ensuite la condition suivante : 
+
+	si tableau[nb + 1] est différent de [nb + 1] * tableau[nb] la bombe explose
+
+nous avons donc le calcul suivant sur le second chiffre:
+
+	nb * nb -1 = 2;
+	2   *  1       = 2 ; 
+
+
+On peut donc en déduire avec la boucle qui incrémente nb( 2 + 1 = 3) : 
+
+	nb * nb-1 = ?  ->  3 * 2  =6; -> 4 * 6 = 24; -> 5 * 24 = 120; -> 6 * 120 = 720
+
+Nous avons donc la séquence suivante :
+
+1 2 6 24 120 720
+
+On test… et c’est good ! On passe tout de suite à … la suite ! 
+
+PHASE 3 :
+
+void phase_3(char *param_1)
+
+{
+  int iVar1;
+  char cVar2;
+  uint local_10;
+  char local_9;
+  int local_8;
+  
+  iVar1 = sscanf(param_1,"%d %c %d",&local_10,&local_9,&local_8);
+  if (iVar1 < 3) {
+    explode_bomb();
+  }
+  switch(local_10) {
+  case 0:
+    cVar2 = 'q';
+    if (local_8 != 0x309) {
+      explode_bomb();
+    }
+    break;
+  case 1:
+    cVar2 = 'b';
+    if (local_8 != 0xd6) {
+      explode_bomb();
+    }
+    break;
+  case 2:
+    cVar2 = 'b';
+    if (local_8 != 0x2f3) {
+      explode_bomb();
+    }
+    break;
+  case 3:
+    cVar2 = 'k';
+    if (local_8 != 0xfb) {
+      explode_bomb();
+    }
+    break;
+  case 4:
+    cVar2 = 'o';
+    if (local_8 != 0xa0) {
+      explode_bomb();
+    }
+    break;
+  case 5:
+    cVar2 = 't';
+    if (local_8 != 0x1ca) {
+      explode_bomb();
+    }
+    break;
+  case 6:
+    cVar2 = 'v';
+    if (local_8 != 0x30c) {
+      explode_bomb();
+    }
+    break;
+  case 7:
+    cVar2 = 'b';
+    if (local_8 != 0x20c) {
+      explode_bomb();
+    }
+    break;
+  default:
+    cVar2 = 'x';
+    explode_bomb();
+  }
+  if (cVar2 != local_9) {
+    explode_bomb();
+  }
+  return;
+}
+ 
+
+Nous pouvons lire que la fonction attend 3 paramètres, à savoir un nombre une lettre, un nombre.
+
+Nous savons que la lettre est b grâce au README nous pouvons donc en déduire via le switch que le premier nombre ne peux être que 1, 2 ou 7.
+
+En fonction du premier chiffre que vous choisissez il suffit de convertir la valeur du if en décimal pour avoir votre dernier chiffre nous avons donc 3 possibilités :
+
+1 b 214 // (0xd6)
+2 b 755 // (0x2f3)
+7 b 524 // (0x20c)
+
+Nous pouvons passer à la prochaine étape.
+
+PHASE 4 :
+
+void phase_4(char *param_1)
+
+{
+  int iVar1;
+  int local_8;
+  
+  iVar1 = sscanf(param_1,"%d",&local_8);
+  if ((iVar1 != 1) || (local_8 < 1)) {
+    explode_bomb();
+  }
+  iVar1 = func4(local_8);
+  if (iVar1 != 0x37) {
+    explode_bomb();
+  }
+  return;
+}
+
+Pas d’indication pour cette phase mais dans le code nous pouvons déjà apercevoir qu’il nous faut un nombre.
+en étudiant le code on remarque 2 phénomènes : 
+
+	1- le nombre entré passe dans une fonction func4.
+	2- le résultat de la fonction est comparé à la valeur 55 (0x37).
+
+Nous allons regarder de plus prêt la fonction func4.
+
+int func4(int param_1)
+
+{
+  int iVar1;
+  int iVar2;
+  
+  if (param_1 < 2) {
+    iVar2 = 1;
+  }
+  else {
+    iVar1 = func4(param_1 + -1);
+    iVar2 = func4(param_1 + -2);
+    iVar2 = iVar2 + iVar1;
+  }
+  return iVar2;
+}
+
+bon on pourrait essayer de déduire le code récursif mais bon comme on est des flemmards on vas faire un main et voir ce que ça donne.
+
+on vas déjà tester avec les chiffres pour voir si une idée globale en ressort : 
+
+int main(void) {
+	printf("%d\n", func4(1));
+	printf("%d\n", func4(2));
+	printf("%d\n", func4(3));
+	printf("%d\n", func4(4));
+	printf("%d\n", func4(5));
+	printf("%d\n", func4(6));
+	printf("%d\n", func4(7));
+	printf("%d\n", func4(8));
+	printf("%d\n", func4(9));
+}
+ 
+
+ ce qui nous donne le résultat suivant :
+
+1
+2
+3
+5
+8
+13
+21
+34
+55
+
+bon bah on à la solution mais on remarque surtout qu’il s’agit de la Suite de Fibonacci (décalé d’un rang).
+
+La réponse est donc 9 
+ 
+
+PHASE 5 :
+
+
+void phase_5(int param_1)
+
+{
+  int iVar1;
+  undefined local_c [6];
+  undefined local_6;
+  
+  iVar1 = string_length(param_1);
+  if (iVar1 != 6) {
+    explode_bomb();
+  }
+  iVar1 = 0;
+  do {
+    local_c[iVar1] = (&array.123)[(char)(*(byte *)(iVar1 + param_1) & 0xf)];
+    iVar1 = iVar1 + 1;
+  } while (iVar1 < 6);
+  local_6 = 0;
+  iVar1 = strings_not_equal(local_c,"giants");
+  if (iVar1 != 0) {
+    explode_bomb();
+  }
+  return;
+}
+
+On s’approche doucement de la fin et ça se complique on dirait !
+
+Posons tout d’abord les bases.
+
+Nous savons d’après 
+
+		iVar1 = string_length(param_1);
+ 		if (iVar1 != 6) {
+			explode_bomb();
+		}
+
+que nous attendons une string de longueur 6 et que le résultat attendu est “giants” ainsi que le premier caratère qui est “o” (donné dans le README).
+
+On a ensuite une boucle “do ; while” qui s’incrémente sur chaque caractères.
+
+une dernière chose a étudier est donc la ligne suivante :
+
+local_c[iVar1] = (&array.123)[(char)(*(byte *)(iVar1 + param_1) & 0xf)];
+
+qui génère les différentes lettres.
+
+giants = 01100111 01101001 01100001 01101110 01110100 01110011 
+
+o -> g 
+
+(char)(*(byte *)(iVar1 + param_1) :  
+
+	(&array.123) : est un talbleau global  comme on peux le voir ici :
+	                             array.123                                       XREF[2]:     phase_5:08048d52(*), 
+                                                                                          phase_5:08048d5f(R)  
+        		0804b220 69              ??         69h    i
+        		0804b221 73              ??         73h    s
+        		0804b222 72              ??         72h    r
+        		0804b223 76              ??         76h    v
+        		0804b224 65              ??         65h    e
+        		0804b225 61              ??         61h    a
+        		0804b226 77              ??         77h    w
+        		0804b227 68              ??         68h    h
+        		0804b228 6f              ??         6Fh    o
+        		0804b229 62              ??         62h    b
+        		0804b22a 70              ??         70h    p
+    		0804b22b 6e              ??         6Eh    n
+     		0804b22c 75              ??         75h    u
+       		0804b22d 74              ??         74h    t
+        		0804b22e 66              ??         66h    f
+        		0804b22f 67              ??         67h    g
+
+	(char) : cast en char
+	(*(byte *) : cast en pointer de byte (octet)
+	(iVar1 + param_1) : on récupère le caractère a la position iVar1 du tableau “array.123”
+	0xf  : nous permet de récupérer les 4 plus petits bit d’un octet
+
+
+Selon l’hypothèse suivant :
+
+
+
+Nous avons,
+
+	o  = 01101111 on retarde le caractère en question : il s’agit de o on garde les 4 dernier bit 		et on calcule sa valeur, ce qui nous donne 15 on regarde la valeur a la position 15 du 			tableau array est g. 
+
+	Maintenant il faut trouver le schéma inverse afin de tenter de retrouver les autres valeurs:
+
+	g étant la dernière lettre a la position 15 sa valeur est donc : 1111 il faut donc regarder 			dans la table ascii quel valeur finissent par 1111 ce qui nous donne : SI - US - / - ? - O - _ 		- o - DEL
+
+
+A priori nous pouvons présupposer que nous devons nous concentrer sur les caractères ascii minuscule selon ce qu’on peux voir (nous testerons bien sure les autres possibilités si cette hypothèse savère être fausse).
+
+Testons maintenant les autres lettres: 
+
+i est à la position 0 ce qui nous donne 0000 nous avons donc 0000 et le seul caractère finissant par cette série de bits (en caractère minuscule) est la lettre p.
+
+a = 5 = 0101 = e ou u
+
+n = 11 = 1011 = k
+
+t = 13 = 1101 = m
+s = 1 0001 = a ou q
+
+selon cette théorie  nous avons les possibilités suivantes :
+
+o p e k m a
+o p e k m q
+o p u k m a
+o p u k m q
+
+testons les différentes possibilités.
+
+Après les différents test on se rend compte que la réponse est “opekmq”. 
+
+Parfait on arrive sur la dernière étape !
+
+PHASE 6 :
+
+void phase_6(undefined4 param_1)
+
+{
+  int *piVar1;
+  int iVar2;
+  int *piVar3;
+  int iVar4;
+  undefined1 *local_38;
+  int *local_34 [6];
+  int local_1c [6];
+  
+  local_38 = node1;
+  read_six_numbers(param_1,local_1c);
+  iVar4 = 0;
+  do {
+    if (5 < local_1c[iVar4] - 1U) {
+      explode_bomb();
+    }
+    iVar2 = iVar4 + 1;
+    if (iVar2 < 6) {
+      do {
+        if (local_1c[iVar4] == local_1c[iVar2]) {
+          explode_bomb();
+        }
+        iVar2 = iVar2 + 1;
+      } while (iVar2 < 6);
+    }
+    iVar4 = iVar4 + 1;
+  } while (iVar4 < 6);
+  iVar4 = 0;
+  do {
+    iVar2 = 1;
+    piVar3 = (int *)local_38;
+    if (1 < local_1c[iVar4]) {
+      do {
+        piVar3 = (int *)piVar3[2];
+        iVar2 = iVar2 + 1;
+      } while (iVar2 < local_1c[iVar4]);
+    }
+    local_34[iVar4] = piVar3;
+    iVar4 = iVar4 + 1;
+  } while (iVar4 < 6);
+  iVar4 = 1;
+  piVar3 = local_34[0];
+  do {
+    piVar1 = local_34[iVar4];
+    *(int **)(piVar3 + 2) = piVar1;
+    iVar4 = iVar4 + 1;
+    piVar3 = piVar1;
+  } while (iVar4 < 6);
+  piVar1[2] = 0;
+  iVar4 = 0;
+  do {
+    if (*local_34[0] < *(int *)local_34[0][2]) {
+      explode_bomb();
+    }
+    local_34[0] = (int *)local_34[0][2];
+    iVar4 = iVar4 + 1;
+  } while (iVar4 < 5);
+  return;
+}
+
+La fameuse fonction read_six_numbers est de retour, pour nous jouer un mauvais tour… (chuchotte : “rendez-vous tous ou ce sera la guerre guerre guerre… miaous oui la guerre”).
+
+On sait donc que nous avons 6 nombres a fournir en entrée.
+
+S’en suis une série de boucle do while que nous devrons décortiquer pour comprendre comment ça fonctionne.
+
+  do {
+    if (5 < local_1c[iVar4] - 1U) {
+      explode_bomb();
+    }
+    …
+    iVar4 = iVar4 + 1;
+  } while (iVar4 < 6);
+
+Etant donnée que pour chaque nb, si 5 est inférieur a nb -1 la bombe explose on peux en déduire que si les nombres sont inférieur ou égal a 5 + 1 on peux continuer dans la boucle.
+
+On sait donc que les chiffre seront de x à 6 
+
+    iVar2 = iVar4 + 1;
+    if (iVar2 < 6) {
+      do {
+        if (local_1c[iVar4] == local_1c[iVar2]) {
+          explode_bomb();
+        }
+        iVar2 = iVar2 + 1;
+      } while (iVar2 < 6);
+    }
+
+La boucle passe sur tout les nb 
+avec ça on sait qu’il n’y aura pas de chiffres identique
+
+nous avons donc 6 chiffres non identiques compris entre x et 6
+
+    if (1 < local_1c[iVar4]) {
+      do {
+        piVar3 = (int *)piVar3[2];
+        iVar2 = iVar2 + 1;
+      } while (iVar2 < local_1c[iVar4]);
+    }
+
+Ensuite on peux voir que local_38 correspond a node1. En cherchant un peu on peux voir qu’il existe un fichier nodeStruct. Nous allons exporter le fichier pour voir ce qu’il contient.
+
+
+typedef unsigned char   undefined;
+
+typedef unsigned char    byte;
+typedef unsigned int    dword;
+typedef long long    longlong;
+typedef unsigned char    uchar;
+typedef unsigned int    uint;
+typedef unsigned long    ulong;
+typedef unsigned long long    ulonglong;
+typedef unsigned char    undefined1;
+typedef unsigned short    undefined2;
+typedef unsigned int    undefined4;
+typedef unsigned short    ushort;
+typedef unsigned short    word;
+typedef struct nodeStruct nodeStruct, *PnodeStruct;
+
+struct nodeStruct {
+    int value;
+    int index;
+    struct nodeStruct * next;
+};
+
+4 2 6 3 1 5
+
+La structure node est donc composé d’un index et d’une valeur puis d’un pointeur sur next. 
+
+On sais qu’il y a 6 chiffres et que nous avons 6 notes. Il y a de grande chances que tout soit liée.
+
+Maintenant essayons de comprendre local_38 est un unsigned char * donc un pointeur sur unsigned char.
+
+On suppose que l
+
+node6 = 183
+node 5 = 469
+node 4 = 486
+node 3 = 311
+node 2 =278
+node 1 = 287
+
+4 5 3 1 2 6
+
+4 1 2 3 5 6
+4 1 2 3 6 5
+4 1 2 5 3 6
+4 1 2 5 6 3
+4 1 2 6 3 5
+4 1 2 6 5 3
+4 1 3 
+  
+
+
+
+
+
