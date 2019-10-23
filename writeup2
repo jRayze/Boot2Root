@@ -22,7 +22,7 @@ o
 NO SPACE IN THE PASSWORD (password is case sensitive).
 
 
-Pour mieux comprendre ce qu’il y a a faire nous décidons d’utiliser un logiciel pour convertir le binaire en fichier point c avec le logiciel de décompilation. Nous utiliserons ghidra.
+Pour mieux comprendre ce qu’il y a a faire nous décidons d’utiliser un logiciel pour convertir le binaireen fichier point c avec le logiciel de décompilation. Nous utiliserons ghidra.
 
 Nous pouvons télécharger le fichier bomb avec la commande scp sur le mac avec la commande suivante: 
 
@@ -365,17 +365,17 @@ o -> g
 	0xf  : nous permet de récupérer les 4 plus petits bit d’un octet
 
 
-Selon l’hypothèse suivant :
+Selon l’hypothèse suivante :
 
 
 
 Nous avons,
 
-	o  = 01101111 on retarde le caractère en question : il s’agit de o on garde les 4 dernier bit 		et on calcule sa valeur, ce qui nous donne 15 on regarde la valeur a la position 15 du 			tableau array est g. 
+	o  = 01101111 on regarde le caractère en question : il s’agit de o on garde les 4 dernier bit et on calcule sa valeur, ce qui nous donne 15. On regarde la valeur a la position 15 du tableau array,... g. 
 
 	Maintenant il faut trouver le schéma inverse afin de tenter de retrouver les autres valeurs:
 
-	g étant la dernière lettre a la position 15 sa valeur est donc : 1111 il faut donc regarder 			dans la table ascii quel valeur finissent par 1111 ce qui nous donne : SI - US - / - ? - O - _ 		- o - DEL
+	g étant la dernière lettre a la position 15 sa valeur est donc : 1111 il faut donc regarder dans la table ascii quel valeur finissent par 1111 ce qui nous donne : SI - US - / - ? - O - _ - o - DEL
 
 
 A priori nous pouvons présupposer que nous devons nous concentrer sur les caractères ascii minuscule selon ce qu’on peux voir (nous testerons bien sure les autres possibilités si cette hypothèse savère être fausse).
