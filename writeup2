@@ -533,59 +533,29 @@ struct nodeStruct {
     struct nodeStruct * next;
 };
 
-4 2 6 3 1 5
-
 La structure node est donc composé d’un index et d’une valeur puis d’un pointeur sur next. 
 
-On sais qu’il y a 6 chiffres et que nous avons 6 notes. Il y a de grande chances que tout soit liée.
+On sais qu’il y a 6 chiffres et que nous avons 6 nodes. Il y a de grande chances que tout soit liée.
 
-Maintenant essayons de comprendre local_38 est un unsigned char * donc un pointeur sur unsigned char.
+Maintenant que nous avons toute la base nous savons etant donné que le premier chiffre sur 6 est donnée 5! possibilités. 
 
-On suppose que l
+Ce qui nous donne 120 combinaisons possibles.
 
-node6 = 183
-node 5 = 469
-node 4 = 486
-node 3 = 311
-node 2 =278
-node 1 = 287
+On vas donc faire un script en bash pour tester les 120 combinaisons et génerer un fichier réponse. (voir le code sources ici => https://github.com/jRayze/Boot2Root/blob/master/script_bomb_p6.sh)
 
-4 5 3 1 2 6
+Ce qui nous donne la réponse suivante 426315
 
-4 1 2 3 5 6
-4 1 2 3 6 5
-4 1 2 5 3 6
-4 1 2 5 6 3
-4 1 2 6 3 5
-4 1 2 6 5 3
-4 1 3 
+On test le file...
 
-#!/bin/bash
-Permutation()
-{
-	if [[ "$1" ]]
-		then
-			for (( i=0 ; i < ${#1} ; i++ ))
-			do
-				( Permutation "${1:0:i}${1:i+1}" "$2${1:i:1}" )
-				$i++
-			done
-		else
-			touch bt_phase_6
-			echo "Public speaking is very easy.\n1 2 6 24 120 720\n1 b 214\n9\nopekmq\n4 " > bt_phase_6
-			echo $2 | sed 's/./& /g' $2 >> bt_phase_6
-			./bomb 'bt_phase_6' | grep 'BOOM!!!'
-			retour=$?
-			if [ $retour = "0" ]
-				then
-					echo "La reponse est 4"$2
-       			fi
-			mv bt_phase_6
-			echo $2
-	fi
-}
-Permutation "12356"
+"Congratulations! You've defused the bomb!"
 
+Sur le Readme on peut appercevoir "When you have all the password use it as "thor" user with ssh.".
 
+Il faut donc concatener toutes les reponses ensemble et sans espaces ce qui nous donne:
 
+	Publicspeakingisveryeasy.126241207201b2149opekmq426315
 
+En essayant de nous connecter on voie un erreur. En cherchant sur le forum de 42 il semblerait qu'il y ai eu une erreur sur le sujet et qu'il faille inverser les nombres 3 et 1 de la réponse de la phase_6.
+
+Le mot de passe est donc :
+	Publicspeakingisveryeasy.126241207201b2149opekmq426135
