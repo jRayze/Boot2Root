@@ -1,4 +1,5 @@
 Writeup2
+--------------------
 
 Nous allons cette fois nous occuper du fichier bomb.
 
@@ -30,6 +31,7 @@ scp laurie@192.168.0.116:/home/laurie/bomb /your/local/path
 
 
 PHASE 1 :
+-----------------
 
 Nous allons faire un nm sur le binaire pour comprendre comment il fonctionne et on peux voir qu’il y a 6 fonctions de phases. Il y a donc 6 test à resoudre.
 
@@ -52,6 +54,7 @@ void phase_1(undefined4 param_1)
 nous pouvons en déduire que la réponse est donc “Public speaking is very easy.”.
 
 PHASE 2 :
+---------------------
 
 Pour l’étape 2 nous avons à traiter le nombre 2, il y a un espace devant nous pouvons en déduire qu’il nous manque un chiffre avant et probablement un ou plusieurs chiffres après.
 Nous allons chercher dans le code la phase 2 :
@@ -94,25 +97,38 @@ void read_six_numbers(char *param_1,int param_2)
 
 On peux voir distinctement que nous avons une fonction qui attend 6 nombres.
 
-Il nous faut donc les trouver pour résoudre le problème de la seconde étape sachant que le second nombre est le “2” (on peux aussi apercevoir que les nombres sont espacés ce qu’il ne faudra pas négliger lors de la réponse).
+Il nous faut donc les trouver pour résoudre le problème de la seconde étape sachant que le second nombre est le “2” 
+(on peux aussi apercevoir que les nombres sont espacés ce qu’il ne faudra pas négliger lors de la réponse).
 
 On remarque que le premier if (de la fonction phase_2) demande si le premier nombre est bien le 1 sinon la bombe explose. 
 
 Nous avons donc pour commencer “1 2”.
 
 On remarque ensuite la condition suivante : 
-
-	si tableau[nb + 1] est différent de [nb + 1] * tableau[nb] la bombe explose
+	tb = tableau
+	si tb[cpt + 1] est différent de cpt + 1 * tableau[cpt] la bombe explose
 
 nous avons donc le calcul suivant sur le second chiffre:
 
-	nb * nb -1 = 2;
+	cpt * tb[cpt - 1] = 2;
 	2   *  1       = 2 ; 
 
 
 On peut donc en déduire avec la boucle qui incrémente nb( 2 + 1 = 3) : 
 
-	nb * nb-1 = ?  ->  3 * 2  =6; -> 4 * 6 = 24; -> 5 * 24 = 120; -> 6 * 120 = 720
+	cpt * tb[cpt - 1] = ?  ->  3 * 2 = 6; -> 4 * 6 = 24; -> 5 * 24 = 120; -> 6 * 120 = 720
+	
+	tb	| val	|	calcul
+	--------|-------|------------------------
+		|	|	cpt  *	case tb	
+	-------	|------	|------------------------
+	tb[1] 	| 1 	|	1
+	tb[2] 	| 2 	|	2    *	tb[1] 
+	tb[3]  	| 6 	|	3    *	tb[2]
+	tb[4]  	| 24 	|	4    *	tb[3]
+	tb[5] 	| 120 	|	5    *	tb[4]
+	tb[6] 	| 720 	|	6    *	tb[5]
+	
 
 Nous avons donc la séquence suivante :
 
@@ -121,6 +137,7 @@ Nous avons donc la séquence suivante :
 On test… et c’est good ! On passe tout de suite à … la suite ! 
 
 PHASE 3 :
+------------------------------
 
 void phase_3(char *param_1)
 
@@ -208,6 +225,7 @@ En fonction du premier chiffre que vous choisissez il suffit de convertir la val
 Nous pouvons passer à la prochaine étape.
 
 PHASE 4 :
+--------------------------
 
 void phase_4(char *param_1)
 
@@ -286,7 +304,7 @@ La réponse est donc 9
  
 
 PHASE 5 :
-
+------------------------
 
 void phase_5(int param_1)
 
@@ -405,6 +423,7 @@ Après les différents test on se rend compte que la réponse est “opekmq”.
 Parfait on arrive sur la dernière étape !
 
 PHASE 6 :
+-----------------------------
 
 void phase_6(undefined4 param_1)
 
@@ -549,6 +568,10 @@ On test le file...
 
 "Congratulations! You've defused the bomb!"
 
+
+Desamorsage de bomb
+--------------------
+
 Sur le Readme on peut appercevoir "When you have all the password use it as "thor" user with ssh.".
 
 Il faut donc concatener toutes les reponses ensemble et sans espaces ce qui nous donne:
@@ -559,3 +582,28 @@ En essayant de nous connecter on voie un erreur. En cherchant sur le forum de 42
 
 Le mot de passe est donc :
 	Publicspeakingisveryeasy.126241207201b2149opekmq426135
+	
+Passer Root avec Zaz 
+-----------------------
+
+
+A ce stade nous avons en faisant ls 
+exploit_me 
+mail	
+
+Nous comprenons que le maximum de caractères est de 140 caractères 
+Si nous dépassons ceci avec 
+./exploit_me $(python -c "print('A' * 145))
+
+Cela fait segfault le fichier
+
+Le but étant de passer en root en lui faisant croire que nous sommes root 
+Nous allons utiliser donc une ret2libc attack (Return-to-libc attack)
+
+Une attaque de type return-to-libc est une attaque informatique démarrant généralement par un dépassement de tampon dans lequel l'adresse de retour dans la pile est remplacée par l'adresse d'une autre fonction et une seconde partie de la pile est modifiée pour fournir les paramètres à cette fonction. Ceci permet à un attaquant d'utiliser une fonction existante et d'éviter d'injecter du code malveillant dans le programme.
+
+https://0x00sec.org/t/exploiting-techniques-000-ret2libc/1833/8
+On met sur la stack a %eip + 8, a l’adresse “/bin/bash”
+ 
+On remplace avec le code sous python : 
+./exploit_me $(python -c "print('A' * 140 + '\xb7\xe6\xb0\x60'[::-1] + 'AAAA' + '\xb7\xf8\xcc\x58'[::-1])")
