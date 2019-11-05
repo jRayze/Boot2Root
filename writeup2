@@ -22,14 +22,19 @@ o
 
 NO SPACE IN THE PASSWORD (password is case sensitive).
 
+On peux verifier le type de fichier auquel correpond bomb avec la commande file.
 
-Pour mieux comprendre ce qu’il y a a faire nous décidons d’utiliser un logiciel pour convertir le binaireen fichier point c avec le logiciel de décompilation. Nous utiliserons ghidra.
+Fichier ELF 32 bit executable donc.
+
+Avec nm on peux aussi en savoir plus, à savoir les fonctions qui composent ce binaire ainsi que ses structures de donées.
+
+Pour mieux comprendre ce qu’il y a a faire nous décidons d’utiliser un logiciel pour convertir le binaire en fichier point c avec le logiciel de décompilation. Nous utiliserons ghidra.
 
 Nous pouvons télécharger le fichier bomb avec la commande scp sur le mac avec la commande suivante: 
 
 scp laurie@192.168.0.116:/home/laurie/bomb /your/local/path
 
-
+-----------------
 PHASE 1 :
 -----------------
 
@@ -53,6 +58,7 @@ void phase_1(undefined4 param_1)
 
 nous pouvons en déduire que la réponse est donc “Public speaking is very easy.”.
 
+---------------------
 PHASE 2 :
 ---------------------
 
@@ -136,6 +142,7 @@ Nous avons donc la séquence suivante :
 
 On test… et c’est good ! On passe tout de suite à … la suite ! 
 
+------------------------------
 PHASE 3 :
 ------------------------------
 
@@ -224,6 +231,7 @@ En fonction du premier chiffre que vous choisissez il suffit de convertir la val
 
 Nous pouvons passer à la prochaine étape.
 
+--------------------------
 PHASE 4 :
 --------------------------
 
@@ -302,7 +310,7 @@ bon bah on à la solution mais on remarque surtout qu’il s’agit de la Suite 
 
 La réponse est donc 9 
  
-
+------------------------
 PHASE 5 :
 ------------------------
 
@@ -422,6 +430,7 @@ Après les différents test on se rend compte que la réponse est “opekmq”.
 
 Parfait on arrive sur la dernière étape !
 
+-----------------------------
 PHASE 6 :
 -----------------------------
 
@@ -568,7 +577,7 @@ On test le file...
 
 "Congratulations! You've defused the bomb!"
 
-
+--------------------
 Desamorsage de bomb
 --------------------
 
@@ -582,10 +591,16 @@ En essayant de nous connecter on voie un erreur. En cherchant sur le forum de 42
 
 Le mot de passe est donc :
 	Publicspeakingisveryeasy.126241207201b2149opekmq426135
-	
-Passer Root avec Zaz 
+
+-----------------------
+Thor et turtle
 -----------------------
 
+...
+
+-----------------------
+Passer Root avec Zaz 
+-----------------------
 
 A ce stade nous avons en faisant ls 
 exploit_me 
