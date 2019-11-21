@@ -639,7 +639,7 @@ Une attaque de type return-to-libc est une attaque informatique démarrant gén�
 
 Pour plus d'informations vous reférer au lien suivant :
 
-https://beta.hackndo.com/retour-a-la-libc/
+[lien](https://beta.hackndo.com/retour-a-la-libc/)
 
 
 Sur le site en question nous voyons que pour pouvoir mettre l’adresse de retour sur le dessus de la pile, et juste en dessous l’adresse de la chaine de caractère passée en argument à la fonction system(). 
